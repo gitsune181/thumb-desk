@@ -1,0 +1,19 @@
+# Local hosting identity and private environment files
+.openai/
+.env
+.env.*
+!.env.example
+
+# Dependencies, logs, archives and editor files
+node_modules/
+*.log
+*.tar.gz
+*.zip
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Historical browser bundles; keep only the active release bundle
+dist/app-*-20261116.js
+!dist/app-qc-20261116.js

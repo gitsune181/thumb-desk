@@ -15,10 +15,10 @@ const portableCsp = "default-src 'self'; script-src 'unsafe-inline'; style-src '
 let html = sourceHtml
   .replace(/<meta http-equiv="Content-Security-Policy"[^>]*>/i, `<meta http-equiv="Content-Security-Policy" content="${portableCsp}">`)
   .replace('<link rel="stylesheet" href="./styles.css" />', `<style>\n${styles}\n</style>`)
-  .replace('<script src="./app-desktop-20261117.js"></script>', `<script>\n${script}\n</script>`)
+  .replace('<script src="./app.js"></script>', `<script>\n${script}\n</script>`)
   .replace('<title>Thumb Desk</title>', '<title>Thumb Desk Web</title>');
 
-if (html.includes('./styles.css') || html.includes('./app-desktop-20261117.js')) {
+if (html.includes('./styles.css') || html.includes('./app.js')) {
   throw new Error('Portable build vẫn còn tham chiếu tới file bên ngoài.');
 }
 

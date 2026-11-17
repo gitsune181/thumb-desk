@@ -1,33 +1,27 @@
-# Thumb Desk
+# Thumb Desk Web
 
-Thumb Desk là công cụ web gọn dành cho quy trình làm thumbnail từ dữ liệu Idea Chic: lọc thẻ trong ngày, xem ảnh, kéo thả ảnh, gửi thumbnail và theo dõi trạng thái QC. Có thể dùng bằng đường link, một file HTML portable hoặc ứng dụng Windows.
+Thumb Desk là công cụ web portable dành cho quy trình làm thumbnail từ dữ liệu Idea Chic: lọc thẻ trong ngày, xem ảnh, kéo thả ảnh, gửi thumbnail và theo dõi trạng thái QC.
 
-## Dùng trực tiếp trên web
+## Dùng ngay
 
-Mở [Thumb Desk Web](https://idea-chic-thumb-desk-v2-2026.social-snow-1874.chatgpt.site), nhập API key Idea Chic cá nhân lần đầu rồi sử dụng. Không cần tải hoặc cài đặt.
+### Cách 1 — mở trực tiếp trên web
 
-## Bản web portable — mở bằng một lần bấm
+Mở [Thumb Desk Web](https://idea-chic-thumb-desk-v2-2026.social-snow-1874.chatgpt.site), nhập API key Idea Chic cá nhân lần đầu rồi sử dụng.
 
-1. Tải `Thumb-Desk-Web.html` từ trang [Releases](https://github.com/gitsune181/thumb-desk/releases/latest).
-2. Bấm đúp file vừa tải; Thumb Desk mở ngay trong Chrome hoặc Edge, không cần cài đặt hay giải nén.
-3. Nhập API key Idea Chic cá nhân khi app hỏi lần đầu.
+### Cách 2 — dùng một file portable
 
-Toàn bộ HTML, CSS và JavaScript nằm trong một file duy nhất. File vẫn cần Internet để kết nối `idea.chicsdata.shop` và tải dữ liệu/ảnh.
+1. Vào [Releases](https://github.com/gitsune181/thumb-desk/releases/latest).
+2. Tải `Thumb-Desk-Web.html`.
+3. Bấm đúp file; Thumb Desk mở ngay trong Chrome hoặc Edge.
+4. Nhập API key Idea Chic cá nhân khi giao diện hỏi lần đầu.
 
-## Cài đặt trong một lần bấm
-
-1. Mở trang [Releases](https://github.com/gitsune181/thumb-desk/releases/latest).
-2. Tải file `Thumb-Desk-Setup-1.1.0.exe`.
-3. Bấm đúp file vừa tải. Bộ cài tự cài theo tài khoản Windows, tạo shortcut **Thumb Desk** ngoài Desktop/Start Menu và tự mở ứng dụng.
-
-Phiên bản đầu tiên chưa ký số nên Windows SmartScreen có thể hiện **Unknown publisher**. Khi đó chọn **More info → Run anyway**. Các bản sau có thể ký số để bỏ cảnh báo này.
+Không cần cài đặt, giải nén, quyền Administrator hoặc chạy server. Toàn bộ HTML, CSS và JavaScript nằm trong một file duy nhất. Công cụ vẫn cần Internet để kết nối `idea.chicsdata.shop` và tải dữ liệu/ảnh.
 
 ## Phiên bản
 
-- App: `1.1.0`
+- Web: `1.1.0`
 - Tag: `v1.1.0`
 - Ngày cập nhật: `17/11/2026`
-- Live web: https://idea-chic-thumb-desk-v2-2026.social-snow-1874.chatgpt.site/
 
 ## Chức năng chính
 
@@ -36,46 +30,36 @@ Phiên bản đầu tiên chưa ký số nên Windows SmartScreen có thể hi�
 - Click mã thẻ hoặc tiêu đề để copy.
 - Tải bài viết thành tệp TXT.
 - Kéo thả ảnh để upload và gửi thumbnail.
-- Xem ảnh toàn màn hình, chuyển ảnh bằng nút điều hướng hoặc bàn phím.
-- Hiển thị trạng thái QC: PASS, đang QC, số lỗi, QC hết hiệu lực và QC lỗi.
+- Xem ảnh toàn màn hình và chuyển ảnh bằng bàn phím.
+- Hiển thị trạng thái QC: PASS, đang QC, lỗi và QC hết hiệu lực.
 - Bố cục responsive từ 1 đến 4 thẻ trên một dòng.
-- Hiển thị phiên bản, tag, ngày cập nhật và cập nhật từ GitHub Releases ngay trong app.
 
-## Bảo mật API key
+## API key
 
-- Không ghi API key vào mã nguồn, commit hoặc GitHub Issues.
-- Trong ứng dụng Windows, key được mã hóa bằng Windows `safeStorage` và chỉ lưu trên máy của người dùng.
-- Mỗi người dùng cần API key/quyền truy cập riêng từ hệ thống Idea Chic.
+- Mỗi người dùng API key Idea Chic của chính mình.
+- Không ghi API key vào mã nguồn, GitHub hoặc nhóm chat.
+- Key được lưu cục bộ trong trình duyệt trên máy của người dùng.
+- Đổi máy, đổi trình duyệt hoặc xóa dữ liệu trình duyệt có thể yêu cầu nhập key lại.
 
-## Chạy bản web từ mã nguồn
-
-```bash
-python -m http.server 8080 --directory dist
-```
-
-Sau đó mở `http://localhost:8080`.
-
-## Phát triển và đóng gói
+## Phát triển
 
 Yêu cầu Node.js 22 trở lên.
 
 ```bash
-npm install
 npm run check
-npm start
-npm run dist:win
+npm run build:web-portable
 ```
 
-Bộ cài và metadata cập nhật được tạo trong `release/`. Khi push tag dạng `v*`, GitHub Actions sẽ build bộ cài Windows và tạo GitHub Release gồm installer, `latest.yml` và blockmap.
+File phát hành được tạo tại `release/Thumb-Desk-Web.html`. Khi push tag dạng `v*`, GitHub Actions kiểm tra nguồn, tạo file portable và cập nhật GitHub Release tương ứng.
 
 ## Cấu trúc
 
 ```text
-dist/                  Giao diện HTML/CSS/JavaScript
-electron/main.cjs      Cửa sổ app, safeStorage và auto-update
-electron/preload.cjs   Cầu nối API desktop giới hạn
-build/icon.svg         Icon ứng dụng
-.github/workflows/     Quy trình phát hành Windows
+dist/index.html              Giao diện web
+dist/styles.css              Kiểu hiển thị
+dist/app.js                  Logic ứng dụng
+scripts/build-portable-web.cjs  Ghép thành một file HTML portable
+.github/workflows/release.yml   Quy trình phát hành web
 ```
 
 Tệp cấu hình hosting riêng của chủ dự án không được đưa lên GitHub.

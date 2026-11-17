@@ -15,6 +15,5 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Historical browser bundles; keep only the active release bundle
+# Local historical browser bundles
 dist/app-*-20261116.js
-!dist/app-qc-20261116.js

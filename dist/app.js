@@ -73,8 +73,8 @@ function englishNiche(value){
 }
 function storyNiche(s){const meta=state.profileMeta[s.profile]||{};return englishNiche(s.niche_en||meta.niche_en||s.niche||meta.niche);}
 function cardSelectedInfo(s){
-  const live=Array.isArray(state.serverSelected[s.id])?state.serverSelected[s.id]:[];
-  const selected=[...live,...storySelections(s)].filter(Boolean).filter((p,i,all)=>all.findIndex(x=>sameImage(x,p))===i);
+  const hasLive=Object.prototype.hasOwnProperty.call(state.serverSelected,s.id);
+  const selected=(hasLive&&Array.isArray(state.serverSelected[s.id])?state.serverSelected[s.id]:storySelections(s)).filter(Boolean).filter((p,i,all)=>all.findIndex(x=>sameImage(x,p))===i);
   const fallback=s.thumb0||s.thumbs?.best_thumb||s.thumbs?.best_human?.img||'';
   const image=fallback&&selected.some(p=>sameImage(p,fallback))?fallback:(selected[0]||fallback);
   return {image,count:selected.length||(image?1:0)};
@@ -109,7 +109,8 @@ async function api(path, options={}) {
   if(options.body && !(options.body instanceof FormData)) headers['Content-Type']='application/json';
   const res = await fetch(API+path,{...options,headers});
   const body = await res.json().catch(()=>({}));
-  if(res.status===401||res.status===403) throw new Error('API key đã hết hạn hoặc chưa được cấp quyền. Hãy bấm “Đổi API” để nhập key mới.');
+  if(res.status===401) throw new Error('API key đã hết hạn. Hãy bấm “Đổi API” để nhập key mới.');
+  if(res.status===403) throw new Error(body.error||body.message||'API key chưa được cấp quyền cho thao tác này.');
   if(!res.ok) throw new Error(body.error || body.message || `API trả về lỗi ${res.status}`);
   if(body.error) throw new Error(body.error);
   return body;
@@ -232,7 +233,8 @@ async function toggleGallery(id){
     const gallery=await getThumbImages(id);
     state.galleries[id]=gallery.images;
     state.serverSelected[id]=gallery.selected;
-    state.selectedImages[id]=gallery.preferred||gallery.selected[0]||gallery.images[0]||'';
+    const current=gallery.images.find(p=>sameImage(p,state.selectedImages[id]));
+    state.selectedImages[id]=current||(gallery.selected.length===1?gallery.selected[0]:'')||gallery.preferred||gallery.selected[0]||gallery.images[0]||'';
     renderGallery(id);
   }
   catch(e){box.innerHTML=`<div class="gallery-empty">${esc(e.message)}</div>`;}
@@ -285,8 +287,7 @@ async function sendExistingThumb(id,btn){
   const image=state.selectedImages[id]; if(!image){setNotice('Hãy chọn một ảnh trước.',true);return;}
   btn.disabled=true;btn.textContent='Đang gửi…';
   try{
-    await api(`/api/story/add_thumb/${encodeURIComponent(id)}`,{method:'POST',body:JSON.stringify({path:image,select:true,exclusive:true})});
-    const exclusive=await waitUntilAttached(id,image,true);
+    const exclusive=await selectExclusiveThumb(id,image);
     if(!exclusive)throw new Error('Web chính chưa xác nhận chỉ chọn duy nhất ảnh này. App đã dừng để không gửi nhầm.');
     state.serverSelected[id]=storySelections(exclusive);
     state.galleries[id]=storyImages(exclusive);
@@ -305,18 +306,27 @@ async function sendExistingThumb(id,btn){
 function storyImages(detail){const story=storyData(detail)||{};return Array.isArray(story.thumb_all)?story.thumb_all.filter(Boolean):Array.isArray(story.thumbs?.images)?story.thumbs.images.filter(Boolean):Array.isArray(story.images)?story.images.filter(Boolean):[];}
 async function getStoryDetail(id){return storyData(await api(`/api/stories/${encodeURIComponent(id)}?fresh=${Date.now()}`));}
 async function persistThumbChoice(id,detail,image,choose=true){
-  const t=detail.thumbs||{}, images=[image,...storyImages(detail).filter(x=>x!==image)], selected=[image,...(t.selected||[]).filter(x=>x!==image)];
-  const thumbs={images,prompt:t.prompt||'',selected,xform_meta:t.xform_meta||{}};
+  const t=detail.thumbs||{}, images=[image,...storyImages(detail).filter(x=>!sameImage(x,image))];
+  const thumbs={...t,images,selected:[image]};
   if(choose)thumbs.best_thumb=image;
   return api(`/api/stories/${encodeURIComponent(id)}`,{method:'PUT',body:JSON.stringify({human_pick:!!choose,thumbs})});
 }
 async function waitUntilAttached(id,image,exclusive=false){
   for(let i=0;i<10;i++){
-    const detail=await getStoryDetail(id), attached=storyImages(detail).some(p=>sameImage(p,image)), selected=storySelections(detail);
+    const detail=await getStoryDetail(id), attached=thumbPaths(detail).some(p=>sameImage(p,image)), selected=storySelections(detail);
     if(attached&&(!exclusive||(selected.length===1&&sameImage(selected[0],image))))return detail;
     await new Promise(resolve=>setTimeout(resolve,500));
   }
   return null;
+}
+async function selectExclusiveThumb(id,image){
+  await api(`/api/story/add_thumb/${encodeURIComponent(id)}`,{method:'POST',body:JSON.stringify({path:image,select:true})});
+  const attached=await waitUntilAttached(id,image,false);
+  if(!attached)throw new Error('Ảnh đã upload nhưng web chính chưa gắn ảnh vào bài.');
+  const selected=storySelections(attached);
+  if(selected.length===1&&sameImage(selected[0],image))return attached;
+  await persistThumbChoice(id,attached,image,true);
+  return waitUntilAttached(id,image,true);
 }
 async function uploadNewImage(id,file,zone){
   if(state.uploading[id]?.busy)return;
@@ -332,9 +342,8 @@ async function uploadNewImage(id,file,zone){
     const image=uploaded.path;
     if(!image) throw new Error('Server không trả về đường dẫn ảnh vừa upload.');
     state.uploading[id]={busy:true,path:image};
-    setCardStatus(id,'Đã upload. Đang gắn ảnh vào bài trên web chính…');
-    await api(`/api/story/add_thumb/${encodeURIComponent(id)}`,{method:'POST',body:JSON.stringify({path:image,select:true,exclusive:true})});
-    const attached=await waitUntilAttached(id,image,true);
+    setCardStatus(id,'Đã upload. Đang chọn duy nhất ảnh mới trên web chính…');
+    const attached=await selectExclusiveThumb(id,image);
     if(!attached)throw new Error('Ảnh đã upload nhưng web chính chưa xác nhận đây là ảnh duy nhất được chọn.');
     const serverImages=attached?storyImages(attached):[image,...storyImages(before)];
     state.galleries[id]=[image,...serverImages.filter(x=>!sameImage(x,image))];state.serverSelected[id]=storySelections(attached);state.selectedImages[id]=image;

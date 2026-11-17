@@ -303,10 +303,13 @@ async function sendExistingThumb(id,btn){
   }catch(e){setCardStatus(id,e.message,true);setNotice(e.message,true);btn.disabled=false;btn.textContent='Chỉ chọn ảnh này & gửi';}
 }
 
-function storyImages(detail){const story=storyData(detail)||{};return Array.isArray(story.thumb_all)?story.thumb_all.filter(Boolean):Array.isArray(story.thumbs?.images)?story.thumbs.images.filter(Boolean):Array.isArray(story.images)?story.images.filter(Boolean):[];}
+function storyImages(detail){
+  const story=storyData(detail)||{};
+  return [...(Array.isArray(story.thumb_all)?story.thumb_all:[]),...(Array.isArray(story.thumbs?.images)?story.thumbs.images:[]),...(Array.isArray(story.images)?story.images:[])].filter(Boolean).filter((p,i,all)=>all.findIndex(x=>sameImage(x,p))===i);
+}
 async function getStoryDetail(id){return storyData(await api(`/api/stories/${encodeURIComponent(id)}?fresh=${Date.now()}`));}
 async function persistThumbChoice(id,detail,image,choose=true){
-  const t=detail.thumbs||{}, images=[image,...storyImages(detail).filter(x=>!sameImage(x,image))];
+  const t=detail.thumbs||{}, images=[image,...thumbPaths(detail).filter(x=>!sameImage(x,image))];
   const thumbs={...t,images,selected:[image]};
   if(choose)thumbs.best_thumb=image;
   return api(`/api/stories/${encodeURIComponent(id)}`,{method:'PUT',body:JSON.stringify({human_pick:!!choose,thumbs})});
@@ -325,7 +328,8 @@ async function selectExclusiveThumb(id,image){
   if(!attached)throw new Error('Ảnh đã upload nhưng web chính chưa gắn ảnh vào bài.');
   const selected=storySelections(attached);
   if(selected.length===1&&sameImage(selected[0],image))return attached;
-  await persistThumbChoice(id,attached,image,true);
+  try{await persistThumbChoice(id,attached,image,true);}
+  catch(error){throw new Error(`Ảnh đã được gắn nhưng API chưa cho phép bỏ chọn ảnh cũ: ${error.message}`);}
   return waitUntilAttached(id,image,true);
 }
 async function uploadNewImage(id,file,zone){
@@ -349,7 +353,7 @@ async function uploadNewImage(id,file,zone){
     state.galleries[id]=[image,...serverImages.filter(x=>!sameImage(x,image))];state.serverSelected[id]=storySelections(attached);state.selectedImages[id]=image;
     if(preview.dataset.url){URL.revokeObjectURL(preview.dataset.url);preview.dataset.url='';}
     render();
-    await toggleGallery(id);
+    const galleryBox=document.getElementById(`gallery-${id}`);if(galleryBox){galleryBox.classList.remove('hidden');renderGallery(id);}
     setCardStatus(id,'Đã upload. Web chính chỉ còn chọn ảnh mới (viền xanh); kiểm tra rồi bấm “Chỉ chọn ảnh này & gửi”.');
     state.uploading[id]={busy:false,path:image};
   }catch(e){state.uploading[id]={busy:false};setCardStatus(id,e.message,true);setNotice(e.message,true);}

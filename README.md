@@ -19,8 +19,8 @@ Không cần cài đặt, giải nén, quyền Administrator hoặc chạy serve
 
 ## Phiên bản
 
-- Web: `1.1.1`
-- Tag: `v1.1.1`
+- Web: `1.2.0`
+- Tag: `v1.2.0`
 - Ngày cập nhật: `17/11/2026`
 
 ## Chức năng chính
@@ -30,6 +30,7 @@ Không cần cài đặt, giải nén, quyền Administrator hoặc chạy serve
 - Click mã thẻ hoặc tiêu đề để copy.
 - Tải bài viết thành tệp TXT.
 - Kéo thả ảnh để upload; ảnh mới tự thành ảnh duy nhất được chọn và ảnh mặc định.
+- Hiển thị đồng hồ cát xoay và khóa bấm lặp trong mọi thao tác phải chờ API.
 - Xem ảnh toàn màn hình và chuyển ảnh bằng bàn phím.
 - Hiển thị trạng thái QC: PASS, đang QC, lỗi và QC hết hiệu lực.
 - Bố cục responsive từ 1 đến 4 thẻ trên một dòng.

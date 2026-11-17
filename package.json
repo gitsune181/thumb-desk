@@ -1,0 +1,64 @@
+{
+  "name": "thumb-desk",
+  "version": "1.1.0",
+  "description": "Thumb Desk desktop workflow",
+  "author": "gitsune181",
+  "license": "UNLICENSED",
+  "private": true,
+  "main": "electron/main.cjs",
+  "releaseDate": "17/11/2026",
+  "scripts": {
+    "start": "electron .",
+    "check": "node --check electron/main.cjs && node --check electron/preload.cjs && node --check dist/app.js && node --check dist/app-desktop-20261117.js",
+    "dist:win": "electron-builder --win nsis --x64"
+  },
+  "dependencies": {
+    "electron-updater": "6.8.11"
+  },
+  "devDependencies": {
+    "electron": "45.3.3",
+    "electron-builder": "26.18.0"
+  },
+  "build": {
+    "appId": "com.gitsune.thumbdesk",
+    "productName": "Thumb Desk",
+    "asar": true,
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "electron/**/*",
+      "dist/**/*",
+      "package.json"
+    ],
+    "win": {
+      "icon": "build/icon.svg",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "artifactName": "Thumb-Desk-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowElevation": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Thumb Desk",
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "gitsune181",
+        "repo": "thumb-desk",
+        "releaseType": "release"
+      }
+    ]
+  }
+}

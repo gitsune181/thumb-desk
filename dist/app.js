@@ -1,23 +1,27 @@
 const API = 'https://idea.chicsdata.shop';
 const KEY_STORAGE = 'ideaRadarKey';
+const native = window.thumbDeskNative || null;
 let volatileKey = '';
 const state = { stories: [], profileMeta:{}, imageFilter: 'all', hidden: new Set(JSON.parse(localStorage.getItem('thumbDeskDone') || '[]')), galleries:{}, selectedImages:{}, serverSelected:{}, uploading:{}, lightbox:{id:'',images:[],index:0,returnFocus:null,request:0,imageRequest:0} };
 const $ = (s) => document.querySelector(s);
-const els = { cards:$('#cards'), empty:$('#empty'), notice:$('#notice'), date:$('#dateFilter'), dateDisplay:$('#dateDisplay'), search:$('#searchFilter'), channel:$('#channelFilter'), niche:$('#nicheFilter'), dialog:$('#keyDialog'), apiKey:$('#apiKey'), keyDialogTitle:$('#keyDialogTitle'), clearKey:$('#clearKeyButton'), lightbox:$('#imageLightbox'), lightboxClose:$('#lightboxClose'), lightboxPrev:$('#lightboxPrev'), lightboxNext:$('#lightboxNext'), lightboxStage:$('#lightboxStage'), lightboxImage:$('#lightboxImage'), lightboxStatus:$('#lightboxStatus'), lightboxCounter:$('#lightboxCounter') };
+const els = { cards:$('#cards'), empty:$('#empty'), notice:$('#notice'), date:$('#dateFilter'), dateDisplay:$('#dateDisplay'), search:$('#searchFilter'), channel:$('#channelFilter'), niche:$('#nicheFilter'), dialog:$('#keyDialog'), apiKey:$('#apiKey'), keyDialogTitle:$('#keyDialogTitle'), keyStorageNote:$('#keyStorageNote'), clearKey:$('#clearKeyButton'), releasePanel:$('#desktopRelease'), releaseMeta:$('#releaseMeta'), updateButton:$('#updateButton'), lightbox:$('#imageLightbox'), lightboxClose:$('#lightboxClose'), lightboxPrev:$('#lightboxPrev'), lightboxNext:$('#lightboxNext'), lightboxStage:$('#lightboxStage'), lightboxImage:$('#lightboxImage'), lightboxStatus:$('#lightboxStatus'), lightboxCounter:$('#lightboxCounter') };
 
 els.date.value = todayInVietnam();
 function readStoredKey(){
+  if(native)return volatileKey;
   try{const saved=localStorage.getItem(KEY_STORAGE);if(saved)return saved;}catch(e){}
   try{return sessionStorage.getItem(KEY_STORAGE)||volatileKey;}catch(e){return volatileKey;}
 }
-function storeKey(value){
+async function storeKey(value){
   volatileKey=value;
+  if(native){try{return await native.setApiKey(value);}catch(e){return false;}}
   try{localStorage.setItem(KEY_STORAGE,value);try{sessionStorage.removeItem(KEY_STORAGE);}catch(e){}return true;}catch(e){}
   try{sessionStorage.setItem(KEY_STORAGE,value);}catch(e){}
   return false;
 }
-function removeStoredKey(){
+async function removeStoredKey(){
   volatileKey='';
+  if(native){try{await native.clearApiKey();}catch(e){}return;}
   try{localStorage.removeItem(KEY_STORAGE);}catch(e){}
   try{sessionStorage.removeItem(KEY_STORAGE);}catch(e){}
 }
@@ -31,7 +35,10 @@ function migrateLegacyKey(){
   }catch(e){volatileKey=legacy;}
 }
 const getKey = () => readStoredKey();
-migrateLegacyKey();
+async function initializeKeyStore(){
+  if(native){try{volatileKey=await native.getApiKey()||'';}catch(e){volatileKey='';}return;}
+  migrateLegacyKey();
+}
 function qcMeta(s){
   const q=s.qc&&typeof s.qc==='object'&&!Array.isArray(s.qc)?s.qc:{},state=String(s.qc_state||'').toLowerCase(),verdict=String(q.verdict||'').toUpperCase(),issues=Array.isArray(q.issues)?q.issues:[];
   if(state==='qc_wait')return {label:'⏳ Đang QC',tone:'blue',title:'QC đang chạy'};
@@ -159,8 +166,20 @@ function render(){
 
 async function copyText(text,target){
   try{
-    if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(text);
-    else{const area=document.createElement('textarea');area.value=text;area.style.cssText='position:fixed;opacity:0';document.body.appendChild(area);area.select();document.execCommand('copy');area.remove();}
+    let copied=false;
+    if(navigator.clipboard?.writeText){
+      try{await navigator.clipboard.writeText(text);copied=true;}catch(e){}
+    }
+    if(!copied){
+      const area=document.createElement('textarea');
+      area.value=text;
+      area.style.cssText='position:fixed;opacity:0;pointer-events:none';
+      document.body.appendChild(area);
+      area.focus();area.select();
+      copied=document.execCommand('copy');
+      area.remove();
+    }
+    if(!copied)throw new Error('Clipboard write failed');
     target.classList.remove('copy-flash');void target.offsetWidth;target.classList.add('copy-flash');setTimeout(()=>target.classList.remove('copy-flash'),520);
   }catch(e){setNotice('Không copy được nội dung. Hãy thử lại.',true);}
 }
@@ -329,6 +348,35 @@ async function uploadNewImage(id,file,zone){
   finally{zone.classList.remove('uploading');const input=zone.querySelector('.file-input');if(input)input.value='';}
 }
 
+function renderUpdateStatus(status={}){
+  if(!native||!els.updateButton)return;
+  const phase=status.phase||'idle';
+  els.updateButton.classList.toggle('update-ready',phase==='available');
+  els.updateButton.disabled=['checking','downloading','downloaded','development'].includes(phase);
+  if(phase==='checking')els.updateButton.textContent='Đang kiểm tra…';
+  else if(phase==='available')els.updateButton.textContent=`Update v${status.version||''}`;
+  else if(phase==='downloading')els.updateButton.textContent=`Đang tải ${status.percent||0}%`;
+  else if(phase==='downloaded')els.updateButton.textContent='Đang cài…';
+  else if(phase==='error')els.updateButton.textContent='Thử lại update';
+  else if(phase==='development')els.updateButton.textContent='Bản phát triển';
+  else els.updateButton.textContent='Kiểm tra update';
+  els.updateButton.title=status.message||'Kiểm tra bản cập nhật mới từ GitHub';
+}
+async function initializeDesktopUi(){
+  if(!native)return;
+  els.releasePanel.classList.remove('hidden');
+  els.keyStorageNote.textContent='API key được mã hóa bằng cơ chế bảo mật của Windows và chỉ lưu trên máy này. Key không nằm trong mã nguồn hay GitHub.';
+  try{
+    const info=await native.getAppInfo();
+    els.releaseMeta.textContent=`v${info.version} · tag ${info.tag} · ${info.releaseDate}`;
+    native.onUpdateStatus(renderUpdateStatus);
+    renderUpdateStatus(await native.getUpdateStatus());
+  }catch(e){renderUpdateStatus({phase:'error',message:e.message});}
+  els.updateButton.addEventListener('click',async()=>{
+    els.updateButton.disabled=true;
+    try{renderUpdateStatus(await native.updateNow());}catch(e){renderUpdateStatus({phase:'error',message:e.message});}
+  });
+}
 function syncKeyUi(){
   const saved=Boolean(getKey());
   $('#keyButton').textContent=saved?'Đổi API':'Kết nối API';
@@ -337,16 +385,21 @@ function syncKeyUi(){
 }
 $('#keyButton').addEventListener('click',()=>{syncKeyUi();els.apiKey.value='';els.dialog.showModal();});
 $('.dialog-close').addEventListener('click',()=>els.dialog.close());
-$('#keyForm').addEventListener('submit',e=>{e.preventDefault();const value=els.apiKey.value.trim();if(!value)return;const persistent=storeKey(value);syncKeyUi();els.apiKey.value='';els.dialog.close();if(!persistent)setNotice('Trình duyệt chỉ cho lưu API trong tab này.',true);loadStories();});
-els.clearKey.addEventListener('click',()=>{
+$('#keyForm').addEventListener('submit',async e=>{e.preventDefault();const value=els.apiKey.value.trim();if(!value)return;const persistent=await storeKey(value);syncKeyUi();els.apiKey.value='';els.dialog.close();if(!persistent)setNotice(native?'Windows chưa cho phép mã hóa key; app chỉ giữ key đến khi đóng.':'Trình duyệt chỉ cho lưu API trong tab này.',true);loadStories();});
+els.clearKey.addEventListener('click',async()=>{
   if(!confirm('Xóa API key đã lưu trên trình duyệt này?'))return;
-  removeStoredKey();location.reload();
+  await removeStoredKey();location.reload();
 });
 els.lightboxClose.addEventListener('click',closeLightbox);els.lightboxPrev.addEventListener('click',()=>moveLightbox(-1));els.lightboxNext.addEventListener('click',()=>moveLightbox(1));
 els.lightbox.addEventListener('close',cleanupLightbox);els.lightbox.addEventListener('click',e=>{if(e.target===els.lightbox||e.target===els.lightboxStage)closeLightbox();});
 document.addEventListener('keydown',e=>{if(!els.lightbox.open)return;if(e.key==='ArrowLeft'){e.preventDefault();moveLightbox(-1);}else if(e.key==='ArrowRight'){e.preventDefault();moveLightbox(1);}});
 $('#refreshButton').addEventListener('click',loadStories); els.date.addEventListener('change',()=>{updateDateDisplay();loadStories();}); [els.channel,els.niche].forEach(x=>x.addEventListener('change',render)); els.search.addEventListener('input',render);
 document.querySelectorAll('[data-image-filter]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-image-filter]').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.imageFilter=b.dataset.imageFilter;render();}));
-updateDateDisplay();
-syncKeyUi();
-if(getKey())loadStories();else els.dialog.showModal();
+async function bootstrap(){
+  await initializeKeyStore();
+  updateDateDisplay();
+  syncKeyUi();
+  await initializeDesktopUi();
+  if(getKey())loadStories();else els.dialog.showModal();
+}
+bootstrap();

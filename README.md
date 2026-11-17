@@ -1,13 +1,21 @@
 # Thumb Desk
 
-Giao diện làm thumbnail gọn dành cho dữ liệu từ Idea Chic. Ứng dụng tập trung vào danh sách thẻ trong ngày, lọc theo kênh/niche, tải nội dung TXT, xem ảnh, kéo thả ảnh và gửi thumbnail.
+Ứng dụng Windows gọn dành cho quy trình làm thumbnail từ dữ liệu Idea Chic: lọc thẻ trong ngày, xem ảnh, kéo thả ảnh, gửi thumbnail và theo dõi trạng thái QC.
 
-## Bản đang chạy
+## Cài đặt trong một lần bấm
 
-- Live demo: https://idea-chic-thumb-desk-v2-2026.social-snow-1874.chatgpt.site/
-- Phiên bản khởi tạo GitHub: `1.0.0`
-- Tag: `v1.0.0`
-- Ngày cập nhật: `16/11/2026`
+1. Mở trang [Releases](https://github.com/gitsune181/thumb-desk/releases/latest).
+2. Tải file `Thumb-Desk-Setup-1.1.0.exe`.
+3. Bấm đúp file vừa tải. Bộ cài tự cài theo tài khoản Windows, tạo shortcut **Thumb Desk** ngoài Desktop/Start Menu và tự mở ứng dụng.
+
+Phiên bản đầu tiên chưa ký số nên Windows SmartScreen có thể hiện **Unknown publisher**. Khi đó chọn **More info → Run anyway**. Các bản sau có thể ký số để bỏ cảnh báo này.
+
+## Phiên bản
+
+- App: `1.1.0`
+- Tag: `v1.1.0`
+- Ngày cập nhật: `17/11/2026`
+- Live web: https://idea-chic-thumb-desk-v2-2026.social-snow-1874.chatgpt.site/
 
 ## Chức năng chính
 
@@ -19,37 +27,43 @@ Giao diện làm thumbnail gọn dành cho dữ liệu từ Idea Chic. Ứng d�
 - Xem ảnh toàn màn hình, chuyển ảnh bằng nút điều hướng hoặc bàn phím.
 - Hiển thị trạng thái QC: PASS, đang QC, số lỗi, QC hết hiệu lực và QC lỗi.
 - Bố cục responsive từ 1 đến 4 thẻ trên một dòng.
+- Hiển thị phiên bản, tag, ngày cập nhật và cập nhật từ GitHub Releases ngay trong app.
 
-## Chạy trên máy
+## Bảo mật API key
 
-Đây là ứng dụng HTML/CSS/JavaScript thuần, không cần bước build.
+- Không ghi API key vào mã nguồn, commit hoặc GitHub Issues.
+- Trong ứng dụng Windows, key được mã hóa bằng Windows `safeStorage` và chỉ lưu trên máy của người dùng.
+- Mỗi người dùng cần API key/quyền truy cập riêng từ hệ thống Idea Chic.
+
+## Chạy bản web từ mã nguồn
 
 ```bash
 python -m http.server 8080 --directory dist
 ```
 
-Sau đó mở `http://localhost:8080` và nhập Radar API key của tài khoản được cấp quyền.
+Sau đó mở `http://localhost:8080`.
 
-## Bảo mật API key
+## Phát triển và đóng gói
 
-- Không ghi API key vào mã nguồn, commit hoặc GitHub Issues.
-- API key được người dùng nhập khi chạy và lưu trong bộ nhớ trình duyệt của chính máy đó.
-- Mỗi người dùng cần API key/quyền truy cập riêng từ hệ thống Idea Chic.
+Yêu cầu Node.js 22 trở lên.
+
+```bash
+npm install
+npm run check
+npm start
+npm run dist:win
+```
+
+Bộ cài và metadata cập nhật được tạo trong `release/`. Khi push tag dạng `v*`, GitHub Actions sẽ build bộ cài Windows và tạo GitHub Release gồm installer, `latest.yml` và blockmap.
 
 ## Cấu trúc
 
 ```text
-dist/
-  index.html              Giao diện chính
-  styles.css              Toàn bộ style responsive
-  app.js                  Mã JavaScript nguồn đang dùng
-  app-qc-20261116.js      Bundle trình duyệt được index.html nạp
+dist/                  Giao diện HTML/CSS/JavaScript
+electron/main.cjs      Cửa sổ app, safeStorage và auto-update
+electron/preload.cjs   Cầu nối API desktop giới hạn
+build/icon.svg         Icon ứng dụng
+.github/workflows/     Quy trình phát hành Windows
 ```
 
-## Cập nhật tự động
-
-Repo này là nền tảng để bổ sung kiểm tra phiên bản qua GitHub Releases. Bản hiện tại chưa tự ghi đè file trên máy; chức năng cập nhật một nút sẽ được triển khai ở bước đóng gói web/PWA hoặc ứng dụng Windows.
-
-## Ghi chú
-
-Tệp cấu hình hosting riêng của chủ dự án không được đưa lên GitHub. Khi fork repo, bạn có thể triển khai thư mục `dist/` lên bất kỳ dịch vụ static hosting nào phù hợp.
+Tệp cấu hình hosting riêng của chủ dự án không được đưa lên GitHub.

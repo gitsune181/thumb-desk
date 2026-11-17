@@ -6,6 +6,7 @@
 
 # Dependencies, logs, archives and editor files
 node_modules/
+release/
 *.log
 *.tar.gz
 *.zip

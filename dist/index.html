@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' blob: data: https:; connect-src https://idea.chicsdata.shop; object-src 'none'; base-uri 'none'; form-action 'self'" />
   <meta name="description" content="Bảng xử lý thumbnail theo ngày cho Idea Radar" />
-  <title>Thumb Desk — Idea Chic</title>
+  <title>Thumb Desk</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -14,7 +15,7 @@
   <div class="shell">
     <header class="topbar">
       <div class="brand"><span class="brand-mark">IC</span><div><b>Thumb Desk</b><small>Idea Chic workflow</small></div></div>
-      <div class="top-actions"><span id="syncState" class="sync-dot">Chưa kết nối</span><button id="keyButton" class="button secondary">Kết nối API</button></div>
+      <div class="top-actions"><div id="desktopRelease" class="desktop-release hidden"><span id="releaseMeta" class="release-meta"></span><button id="updateButton" class="button secondary update-button" type="button">Update</button></div><span id="syncState" class="sync-dot">Chưa kết nối</span><button id="keyButton" class="button secondary">Kết nối API</button></div>
     </header>
 
     <main>
@@ -46,7 +47,7 @@
     <form method="dialog" id="keyForm">
       <button class="dialog-close" type="button" aria-label="Đóng">×</button>
       <p class="eyebrow">KẾT NỐI IDEA RADAR</p><h2 id="keyDialogTitle">Nhập API key</h2>
-      <p>Key được lưu trên trình duyệt của máy này để dùng lại sau khi đóng tab hoặc cập nhật app. Key không nằm trong mã nguồn.</p>
+      <p id="keyStorageNote">Key được lưu trên trình duyệt của máy này để dùng lại sau khi đóng tab hoặc cập nhật app. Key không nằm trong mã nguồn.</p>
       <label><span>Radar API key</span><input id="apiKey" type="password" placeholder="rdk_••••••••••••" autocomplete="off" required /></label>
       <button class="button primary full" value="default">Kết nối và tải dữ liệu</button>
       <button id="clearKeyButton" class="button secondary full clear-key hidden" type="button">Xóa API đã lưu</button>
@@ -64,6 +65,6 @@
     </figure>
     <button id="lightboxNext" class="lightbox-nav lightbox-next" type="button" aria-label="Xem ảnh tiếp theo">›</button>
   </dialog>
-  <script src="./app-qc-20261116.js"></script>
+  <script src="./app-desktop-20261117.js"></script>
 </body>
 </html>

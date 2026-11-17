@@ -1,6 +1,18 @@
 # Thumb Desk
 
-Ứng dụng Windows gọn dành cho quy trình làm thumbnail từ dữ liệu Idea Chic: lọc thẻ trong ngày, xem ảnh, kéo thả ảnh, gửi thumbnail và theo dõi trạng thái QC.
+Thumb Desk là công cụ web gọn dành cho quy trình làm thumbnail từ dữ liệu Idea Chic: lọc thẻ trong ngày, xem ảnh, kéo thả ảnh, gửi thumbnail và theo dõi trạng thái QC. Có thể dùng bằng đường link, một file HTML portable hoặc ứng dụng Windows.
+
+## Dùng trực tiếp trên web
+
+Mở [Thumb Desk Web](https://idea-chic-thumb-desk-v2-2026.social-snow-1874.chatgpt.site), nhập API key Idea Chic cá nhân lần đầu rồi sử dụng. Không cần tải hoặc cài đặt.
+
+## Bản web portable — mở bằng một lần bấm
+
+1. Tải `Thumb-Desk-Web.html` từ trang [Releases](https://github.com/gitsune181/thumb-desk/releases/latest).
+2. Bấm đúp file vừa tải; Thumb Desk mở ngay trong Chrome hoặc Edge, không cần cài đặt hay giải nén.
+3. Nhập API key Idea Chic cá nhân khi app hỏi lần đầu.
+
+Toàn bộ HTML, CSS và JavaScript nằm trong một file duy nhất. File vẫn cần Internet để kết nối `idea.chicsdata.shop` và tải dữ liệu/ảnh.
 
 ## Cài đặt trong một lần bấm
 

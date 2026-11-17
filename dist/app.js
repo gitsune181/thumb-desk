@@ -2,7 +2,13 @@ const API = 'https://idea.chicsdata.shop';
 const KEY_STORAGE = 'ideaRadarKey';
 const native = window.thumbDeskNative || null;
 let volatileKey = '';
-const state = { stories: [], profileMeta:{}, imageFilter: 'all', hidden: new Set(JSON.parse(localStorage.getItem('thumbDeskDone') || '[]')), galleries:{}, selectedImages:{}, serverSelected:{}, uploading:{}, lightbox:{id:'',images:[],index:0,returnFocus:null,request:0,imageRequest:0} };
+function readStoredJson(key,fallback){
+  try{const raw=localStorage.getItem(key);return raw?JSON.parse(raw):fallback;}catch(e){return fallback;}
+}
+function writeStoredJson(key,value){
+  try{localStorage.setItem(key,JSON.stringify(value));return true;}catch(e){return false;}
+}
+const state = { stories: [], profileMeta:{}, imageFilter: 'all', hidden: new Set(readStoredJson('thumbDeskDone',[])), galleries:{}, selectedImages:{}, serverSelected:{}, uploading:{}, lightbox:{id:'',images:[],index:0,returnFocus:null,request:0,imageRequest:0} };
 const $ = (s) => document.querySelector(s);
 const els = { cards:$('#cards'), empty:$('#empty'), notice:$('#notice'), date:$('#dateFilter'), dateDisplay:$('#dateDisplay'), search:$('#searchFilter'), channel:$('#channelFilter'), niche:$('#nicheFilter'), dialog:$('#keyDialog'), apiKey:$('#apiKey'), keyDialogTitle:$('#keyDialogTitle'), keyStorageNote:$('#keyStorageNote'), clearKey:$('#clearKeyButton'), releasePanel:$('#desktopRelease'), releaseMeta:$('#releaseMeta'), updateButton:$('#updateButton'), lightbox:$('#imageLightbox'), lightboxClose:$('#lightboxClose'), lightboxPrev:$('#lightboxPrev'), lightboxNext:$('#lightboxNext'), lightboxStage:$('#lightboxStage'), lightboxImage:$('#lightboxImage'), lightboxStatus:$('#lightboxStatus'), lightboxCounter:$('#lightboxCounter') };
 
@@ -299,7 +305,7 @@ async function sendExistingThumb(id,btn){
     if(selected.length!==1||!sameImage(selected[0],image))throw new Error('Web chính chưa giữ đúng một ảnh được chọn. App không ẩn thẻ.');
     const chosen=done.default_img||done.image||storyPreferred(checked);
     if(!sameImage(chosen,image))throw new Error(`Web chính trả về ảnh mặc định khác ảnh đã chọn (${String(chosen||'không xác định').split('/').pop()}). App không ẩn thẻ.`);
-    state.hidden.add(String(id));localStorage.setItem('thumbDeskDone',JSON.stringify([...state.hidden]));setNotice('Đã chọn đúng ảnh mặc định và gửi thumb.');await loadStories();
+    state.hidden.add(String(id));writeStoredJson('thumbDeskDone',[...state.hidden]);setNotice('Đã chọn đúng ảnh mặc định và gửi thumb.');await loadStories();
   }catch(e){setCardStatus(id,e.message,true);setNotice(e.message,true);btn.disabled=false;btn.textContent='Chỉ chọn ảnh này & gửi';}
 }
 

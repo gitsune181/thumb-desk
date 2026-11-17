@@ -10,6 +10,7 @@
   "scripts": {
     "start": "electron .",
     "check": "node --check electron/main.cjs && node --check electron/preload.cjs && node --check dist/app.js && node --check dist/app-desktop-20261117.js",
+    "build:web-portable": "node scripts/build-portable-web.cjs",
     "dist:win": "electron-builder --win nsis --x64 --publish never"
   },
   "dependencies": {

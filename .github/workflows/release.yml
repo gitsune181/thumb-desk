@@ -38,10 +38,13 @@ jobs:
       - name: Build one-click installer
         run: npm run dist:win
 
+      - name: Build portable web file
+        run: npm run build:web-portable
+
       - name: Publish GitHub Release
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $assets = Get-ChildItem release -File | Where-Object { ($_.Extension -in '.exe', '.blockmap') -or ($_.Name -eq 'latest.yml') } | ForEach-Object { $_.FullName }
+          $assets = Get-ChildItem release -File | Where-Object { ($_.Extension -in '.exe', '.blockmap', '.html') -or ($_.Name -eq 'latest.yml') } | ForEach-Object { $_.FullName }
           gh release create "${{ github.ref_name }}" $assets --repo "${{ github.repository }}" --title "Thumb Desk ${{ github.ref_name }}" --generate-notes
